@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Basketball Stat Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<h1>Basketball Stat Tracker</h1>
+
+<div id="game-select">
+  <button onclick="newGame()">New Game</button>
+  <select id="gameList" onchange="loadGame(this.value)"></select>
+</div>
+
+<hr />
+
+<div id="roster">
+  <h2>Roster</h2>
+  <input id="playerNumber" placeholder="Number" />
+  <input id="playerName" placeholder="Name (optional)" />
+  <button onclick="addPlayer()">Add Player</button>
+  <ul id="rosterList"></ul>
+</div>
+
+<hr />
+
+<div id="controls">
+  <h2>Game Controls</h2>
+  <p><strong>Keyboard Commands:</strong></p>
+  <ul>
+    <li><b>P + number</b> → Add point</li>
+    <li><b>F + number</b> → Add personal foul</li>
+    <li><b>T</b> → Reset team fouls</li>
+  </ul>
+</div>
+
+<hr />
+
+<div id="stats">
+  <h2>Stats</h2>
+  <p>Team Fouls: <span id="teamFouls">0</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Points</th>
+        <th>Fouls</th>
+      </tr>
+    </thead>
+    <tbody id="statTable"></tbody>
+  </table>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -150,38 +150,51 @@
       }
     }
 
-  document.addEventListener('keydown', e => {
-  // ===== JERSEY ENTRY MODE =====
-  if (!state.activePlayer && /\d/.test(e.key)) {
-    state.numberBuffer += e.key;
+ document.addEventListener('keydown', e => {
+
+  // ===== JERSEY ENTRY MODE (NO PLAYER SELECTED) =====
+  if (!state.activePlayer) {
+
+    // Build jersey number
+    if (/\d/.test(e.key)) {
+      state.numberBuffer += e.key;
+      return;
+    }
+
+    // Confirm selection
+    if (e.key === 'Enter' && state.numberBuffer) {
+      selectByNumber(state.numberBuffer);
+      state.numberBuffer = '';
+      return;
+    }
+
+    // Switch teams anytime
+    if (e.key.toLowerCase() === 't') {
+      state.activeTeam = state.activeTeam === 'A' ? 'B' : 'A';
+      state.numberBuffer = '';
+      renderPlayers();
+    }
+
     return;
   }
 
-  // Confirm jersey selection
-  if (!state.activePlayer && e.key === 'Enter' && state.numberBuffer) {
-    selectByNumber(state.numberBuffer);
-    state.numberBuffer = '';
-    return;
-  }
+  // ===== ACTION MODE (PLAYER SELECTED) =====
 
-  // If no active player, nothing else should happen
-  if (!state.activePlayer) return;
-
-  // ===== ACTION MODE =====
-
-  // Points (auto-deselect)
+  // Points
   if (['1', '2', '3'].includes(e.key)) {
     state.activePlayer.points += Number(e.key);
     state.activePlayer = null;
+    state.numberBuffer = '';
     renderPlayers();
     return;
   }
 
-  // Foul (auto-deselect)
+  // Foul
   if (e.key.toLowerCase() === 'f') {
     state.activePlayer.fouls++;
     const player = state.activePlayer;
     state.activePlayer = null;
+    state.numberBuffer = '';
     renderPlayers();
     notifyFoul(player);
     return;
@@ -195,6 +208,7 @@
     renderPlayers();
   }
 });
+
   </script>
 </body>
 </html>

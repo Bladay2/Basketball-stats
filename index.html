@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Basketball Stat Tracker 4.0</title>
+  <title>Basketball Stat Tracker 5.0</title>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;
@@ -34,24 +34,25 @@
     .active{color:#38bdf8;}
     .scoreboard{display:flex;justify-content:space-around;margin-bottom:12px;font-size:1.4rem;}
     .keymap{font-size:0.85rem;border:1px solid #1e293b;border-radius:12px;padding:10px;margin-top:16px;}
+    .game-buttons { display:flex; justify-content:center; margin-bottom:12px; gap:8px; }
   </style>
 </head>
 <body>
   <div class="app">
-    <h1>🏀 Player Stat Tracker 4.0</h1>
+    <h1>🏀 Player Stat Tracker 5.0</h1>
 
     <div class="setup">
       <h2>Pre-Game Roster</h2>
       <div class="teams">
         <div class="team">
-          <h3>Team A</h3>
+          <h3><input id="teamANameInput" placeholder="Team A Name" value="Team A" /></h3>
           <input id="aNum" placeholder="#" />
           <input id="aName" placeholder="Name" />
           <button onclick="addPlayer('A')">Add</button>
           <ul id="aRoster"></ul>
         </div>
         <div class="team">
-          <h3>Team B</h3>
+          <h3><input id="teamBNameInput" placeholder="Team B Name" value="Team B" /></h3>
           <input id="bNum" placeholder="#" />
           <input id="bName" placeholder="Name" />
           <button onclick="addPlayer('B')">Add</button>
@@ -59,19 +60,22 @@
         </div>
       </div>
       <button class="secondary" onclick="startGame()">Start Game</button>
-      <button class="secondary" onclick="resetGame()">Reset Game</button>
-      <button class="secondary" onclick="undoLastAction()">Undo Last Action</button>
     </div>
 
     <div id="game" style="display:none;">
       <div class="scoreboard">
-        <div>Team A: <strong id="teamAPoints">0</strong> (Fouls: <span id="teamAFouls">0</span>)</div>
-        <div>Team B: <strong id="teamBPoints">0</strong> (Fouls: <span id="teamBFouls">0</span>)</div>
+        <div><span id="teamALabel">Team A</span>: <strong id="teamAPoints">0</strong> (Fouls: <span id="teamAFouls">0</span>)</div>
+        <div><span id="teamBLabel">Team B</span>: <strong id="teamBPoints">0</strong> (Fouls: <span id="teamBFouls">0</span>)</div>
       </div>
 
       <div class="teams">
-        <div class="team"><h3>Team A</h3><div id="aPlayers"></div></div>
-        <div class="team"><h3>Team B</h3><div id="bPlayers"></div></div>
+        <div class="team"><h3 id="teamAHeader">Team A</h3><div id="aPlayers"></div></div>
+        <div class="team"><h3 id="teamBHeader">Team B</h3><div id="bPlayers"></div></div>
+      </div>
+
+      <div class="game-buttons">
+        <button class="secondary" onclick="resetGame()">Reset Game</button>
+        <button class="secondary" onclick="undoLastAction()">Undo Last Action</button>
       </div>
 
       <div class="keymap">
@@ -79,8 +83,7 @@
         Type player number → Enter (select player)<br />
         1 / 2 / 3 → points for selected player<br />
         F → foul (shows notification)<br />
-        T → switch team<br />
-        Undo Last Action → button
+        T → switch team
       </div>
     </div>
   </div>
@@ -112,6 +115,14 @@
     }
 
     function startGame(){
+      // Save team names
+      const aName = document.getElementById('teamANameInput').value.trim() || 'Team A';
+      const bName = document.getElementById('teamBNameInput').value.trim() || 'Team B';
+      document.getElementById('teamALabel').textContent = aName;
+      document.getElementById('teamBLabel').textContent = bName;
+      document.getElementById('teamAHeader').textContent = aName;
+      document.getElementById('teamBHeader').textContent = bName;
+
       document.querySelector('.setup').style.display='none';
       document.getElementById('game').style.display='block';
       if(Notification.permission!=='granted') Notification.requestPermission();

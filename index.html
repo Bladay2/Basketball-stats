@@ -2,58 +2,163 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Basketball Stat Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .app {
+      background: #020617;
+      padding: 20px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 950px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    h1, h2, h3 { text-align: center; margin: 10px 0; }
+    input { padding: 6px; border-radius: 6px; border: none; margin-right: 6px; width: 110px; }
+    button { background: #2563eb; border: none; color: white; padding: 6px 12px; margin: 4px; border-radius: 6px; cursor: pointer; }
+    button.secondary { background: #475569; }
+    .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .team { border: 1px solid #1e293b; border-radius: 12px; padding: 12px; }
+    .player { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center; margin: 6px 0; }
+    .active { color: #38bdf8; }
+    .scoreboard { display: flex; justify-content: space-around; margin-bottom: 12px; font-size: 1.4rem; }
+    .keymap { font-size: 0.85rem; border: 1px solid #1e293b; border-radius: 12px; padding: 10px; margin-top: 16px; }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <h1>🏀 Player Stat Tracker</h1>
 
-<h1>Basketball Stat Tracker</h1>
+    <div class="setup">
+      <h2>Pre-Game Roster</h2>
+      <div class="teams">
+        <div class="team">
+          <h3>Team A</h3>
+          <input id="aNum" placeholder="#" />
+          <input id="aName" placeholder="Name" />
+          <button onclick="addPlayer('A')">Add</button>
+          <ul id="aRoster"></ul>
+        </div>
+        <div class="team">
+          <h3>Team B</h3>
+          <input id="bNum" placeholder="#" />
+          <input id="bName" placeholder="Name" />
+          <button onclick="addPlayer('B')">Add</button>
+          <ul id="bRoster"></ul>
+        </div>
+      </div>
+      <button class="secondary" onclick="startGame()">Start Game</button>
+    </div>
 
-<div id="game-select">
-  <button onclick="newGame()">New Game</button>
-  <select id="gameList" onchange="loadGame(this.value)"></select>
-</div>
+    <div id="game" style="display:none;">
+      <div class="scoreboard">
+        <div>Team A: <strong id="teamAPoints">0</strong> (Fouls: <span id="teamAFouls">0</span>)</div>
+        <div>Team B: <strong id="teamBPoints">0</strong> (Fouls: <span id="teamBFouls">0</span>)</div>
+      </div>
 
-<hr />
+      <div class="teams">
+        <div class="team"><h3>Team A</h3><div id="aPlayers"></div></div>
+        <div class="team"><h3>Team B</h3><div id="bPlayers"></div></div>
+      </div>
 
-<div id="roster">
-  <h2>Roster</h2>
-  <input id="playerNumber" placeholder="Number" />
-  <input id="playerName" placeholder="Name (optional)" />
-  <button onclick="addPlayer()">Add Player</button>
-  <ul id="rosterList"></ul>
-</div>
+      <div class="keymap">
+        <strong>Keyboard Workflow</strong><br />
+        Type player number → Enter (select player)<br />
+        1 / 2 / 3 → points for selected player<br />
+        F → foul (shows notification)<br />
+        T → switch team
+      </div>
+    </div>
+  </div>
 
-<hr />
+  <script>
+    const state = {
+      A: [], B: [], activeTeam: 'A', activePlayer: null, numberBuffer: ''
+    };
 
-<div id="controls">
-  <h2>Game Controls</h2>
-  <p><strong>Keyboard Commands:</strong></p>
-  <ul>
-    <li><b>P + number</b> → Add point</li>
-    <li><b>F + number</b> → Add personal foul</li>
-    <li><b>T</b> → Reset team fouls</li>
-  </ul>
-</div>
+    function addPlayer(team) {
+      const numInput = document.getElementById(team === 'A' ? 'aNum' : 'bNum');
+      const nameInput = document.getElementById(team === 'A' ? 'aName' : 'bName');
+      const number = numInput.value.trim();
+      const name = nameInput.value.trim();
+      if (!number || !name) return;
+      if (state[team].some(p => p.number === number)) { alert('Duplicate number'); return; }
+      state[team].push({ number, name, points: 0, fouls: 0 });
+      numInput.value = ''; nameInput.value = '';
+      renderRoster();
+    }
 
-<hr />
+    function renderRoster() {
+      ['A','B'].forEach(team => {
+        const ul = document.getElementById(team === 'A' ? 'aRoster' : 'bRoster');
+        ul.innerHTML = '';
+        state[team].forEach(p => { const li = document.createElement('li'); li.textContent = `#${p.number} ${p.name}`; ul.appendChild(li); });
+      });
+    }
 
-<div id="stats">
-  <h2>Stats</h2>
-  <p>Team Fouls: <span id="teamFouls">0</span></p>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Points</th>
-        <th>Fouls</th>
-      </tr>
-    </thead>
-    <tbody id="statTable"></tbody>
-  </table>
-</div>
+    function startGame() {
+      document.querySelector('.setup').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      if (Notification.permission !== 'granted') Notification.requestPermission();
+      renderPlayers();
+    }
 
-<script src="app.js"></script>
+    function renderPlayers() {
+      ['A','B'].forEach(team => {
+        const div = document.getElementById(team === 'A' ? 'aPlayers' : 'bPlayers');
+        div.innerHTML = '';
+        state[team].forEach(p => {
+          const row = document.createElement('div');
+          row.className = 'player ' + (state.activePlayer === p ? 'active' : '');
+          row.innerHTML = `<span>#${p.number}</span><span>${p.name}</span><span>P:${p.points}</span><span>F:${p.fouls}</span>`;
+          div.appendChild(row);
+        });
+      });
+      updateTotals();
+    }
+
+    function updateTotals() {
+      const sum = t => state[t].reduce((a,p)=>({points:a.points+p.points,fouls:a.fouls+p.fouls}),{points:0,fouls:0});
+      const A = sum('A'), B = sum('B');
+      teamAPoints.textContent = A.points; teamAFouls.textContent = A.fouls;
+      teamBPoints.textContent = B.points; teamBFouls.textContent = B.fouls;
+    }
+
+    function selectByNumber(num) {
+      const p = state[state.activeTeam].find(x => x.number === num);
+      if (p) { state.activePlayer = p; renderPlayers(); }
+    }
+
+    function notifyFoul(player) {
+      const teamFouls = state[state.activeTeam].reduce((s,p)=>s+p.fouls,0);
+      if (Notification.permission === 'granted') {
+        new Notification('Foul Recorded', { body: `${player.name} (#${player.number})\nPersonal Fouls: ${player.fouls}\nTeam Fouls: ${teamFouls}` });
+      } else {
+        alert(`${player.name} foul\nPersonal: ${player.fouls}\nTeam: ${teamFouls}`);
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if (/\d/.test(e.key)) state.numberBuffer += e.key;
+      if (e.key === 'Enter' && state.numberBuffer) { selectByNumber(state.numberBuffer); state.numberBuffer = ''; }
+
+      if (!state.activePlayer) return;
+
+      if (['1','2','3'].includes(e.key)) { state.activePlayer.points += Number(e.key); renderPlayers(); }
+      if (e.key.toLowerCase() === 'f') { state.activePlayer.fouls++; renderPlayers(); notifyFoul(state.activePlayer); }
+      if (e.key.toLowerCase() === 't') { state.activeTeam = state.activeTeam === 'A' ? 'B' : 'A'; state.activePlayer = null; renderPlayers(); }
+    });
+  </script>
 </body>
 </html>
